@@ -7,16 +7,30 @@ import { useEffect } from "react";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { View } from "react-native";
+import { TechniqueProvider } from "../context/TechniqueContext";
+import { ThemeProvider, useTheme } from "../context/ThemeContext";
 
 SplashScreen.preventAutoHideAsync();
+
+function RootContent() {
+    const { isDarkMode } = useTheme();
+
+    return (
+        <View style={{ flex: 1, backgroundColor: isDarkMode ? '#10221d' : '#FFF9F0' }}>
+            <StatusBar style={isDarkMode ? "light" : "dark"} backgroundColor={isDarkMode ? '#10221d' : '#FFF9F0'} />
+            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: isDarkMode ? '#10221d' : '#FFF9F0' } }}>
+                <Stack.Screen name="index" />
+            </Stack>
+        </View>
+    );
+}
 
 export default function RootLayout() {
     const [fontsLoaded, error] = useFonts({
         Inter_300Light,
         Inter_400Regular,
         Inter_500Medium,
-        Inter_600SemiBold,
-        Inter_700Bold,
+        Inter_600SemiBold, Inter_700Bold,
         Lexend_100Thin,
         Lexend_400Regular,
         Lexend_500Medium,
@@ -39,11 +53,10 @@ export default function RootLayout() {
     }
 
     return (
-        <View style={{ flex: 1, backgroundColor: '#10221d' }}>
-            <StatusBar style="light" backgroundColor="#10221d" />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#10221d' } }}>
-                <Stack.Screen name="index" />
-            </Stack>
-        </View>
+        <ThemeProvider>
+            <TechniqueProvider>
+                <RootContent />
+            </TechniqueProvider>
+        </ThemeProvider>
     );
 }

@@ -10,39 +10,45 @@ export default function TabLayout() {
             screenOptions={{
                 headerShown: false,
                 tabBarStyle: {
-                    backgroundColor: 'rgba(10, 15, 26, 0.9)',
-                    borderTopWidth: 1,
-                    borderTopColor: 'rgba(196, 77, 255, 0.15)',
+                    backgroundColor: '#1A1A1A', // Deep Charcoal
+                    borderTopWidth: 0,
                     position: 'absolute',
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    elevation: 0,
-                    height: 85,
-                    paddingTop: 12,
-                    paddingBottom: 20,
+                    bottom: 30,
+                    left: 20,
+                    right: 20,
+                    elevation: 10,
+                    height: 65,
+                    borderRadius: 35,
+                    paddingTop: 0,
+                    paddingBottom: 0,
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 10 },
+                    shadowOpacity: 0.15,
+                    shadowRadius: 20,
+                    alignItems: 'center',
+                    justifyContent: 'center',
                 },
-                tabBarActiveTintColor: '#c44dff',
+                tabBarActiveTintColor: '#E9C46A', // Sunny Yellow
                 tabBarInactiveTintColor: 'rgba(255, 255, 255, 0.4)',
                 tabBarShowLabel: false,
+                tabBarItemStyle: {
+                    height: 65,
+                    padding: 0,
+                }
             }}
         >
             <Tabs.Screen
                 name="home"
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <View style={styles.tabItem}>
+                        <View style={[styles.tabItem, focused && styles.tabItemActive]}>
                             {focused ? (
-                                <LinearGradient
-                                    colors={['#c44dff', '#ff6b9d']}
-                                    style={styles.activeIconBg}
-                                >
-                                    <MaterialIcons name="home" size={22} color="white" />
-                                </LinearGradient>
+                                <View style={styles.activeIconBg}>
+                                    <MaterialIcons name="home" size={24} color="#1A1A1A" />
+                                </View>
                             ) : (
-                                <MaterialIcons name="home" size={24} color={color} />
+                                <MaterialIcons name="home" size={26} color={color} />
                             )}
-                            <Text style={[styles.tabLabel, focused && styles.tabLabelActive]}>HOME</Text>
                         </View>
                     ),
                 }}
@@ -51,18 +57,14 @@ export default function TabLayout() {
                 name="library"
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <View style={styles.tabItem}>
+                        <View style={[styles.tabItem, focused && styles.tabItemActive]}>
                             {focused ? (
-                                <LinearGradient
-                                    colors={['#4dabff', '#4dffae']}
-                                    style={styles.activeIconBg}
-                                >
-                                    <MaterialIcons name="auto-stories" size={22} color="white" />
-                                </LinearGradient>
+                                <View style={styles.activeIconBg}>
+                                    <MaterialIcons name="auto-stories" size={24} color="#1A1A1A" />
+                                </View>
                             ) : (
-                                <MaterialIcons name="auto-stories" size={24} color={color} />
+                                <MaterialIcons name="auto-stories" size={26} color={color} />
                             )}
-                            <Text style={[styles.tabLabel, focused && { color: '#4dabff' }]}>LIBRARY</Text>
                         </View>
                     ),
                 }}
@@ -71,18 +73,14 @@ export default function TabLayout() {
                 name="stats"
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <View style={styles.tabItem}>
+                        <View style={[styles.tabItem, focused && styles.tabItemActive]}>
                             {focused ? (
-                                <LinearGradient
-                                    colors={['#ff6b9d', '#ffd700']}
-                                    style={styles.activeIconBg}
-                                >
-                                    <MaterialIcons name="insights" size={22} color="white" />
-                                </LinearGradient>
+                                <View style={styles.activeIconBg}>
+                                    <MaterialIcons name="insights" size={24} color="#1A1A1A" />
+                                </View>
                             ) : (
-                                <MaterialIcons name="insights" size={24} color={color} />
+                                <MaterialIcons name="insights" size={26} color={color} />
                             )}
-                            <Text style={[styles.tabLabel, focused && { color: '#ff6b9d' }]}>STATS</Text>
                         </View>
                     ),
                 }}
@@ -91,18 +89,14 @@ export default function TabLayout() {
                 name="profile"
                 options={{
                     tabBarIcon: ({ color, focused }) => (
-                        <View style={styles.tabItem}>
+                        <View style={[styles.tabItem, focused && styles.tabItemActive]}>
                             {focused ? (
-                                <LinearGradient
-                                    colors={['#ff9d6b', '#c44dff']}
-                                    style={styles.activeIconBg}
-                                >
-                                    <MaterialIcons name="person" size={22} color="white" />
-                                </LinearGradient>
+                                <View style={styles.activeIconBg}>
+                                    <MaterialIcons name="person" size={24} color="#1A1A1A" />
+                                </View>
                             ) : (
-                                <MaterialIcons name="person" size={24} color={color} />
+                                <MaterialIcons name="person" size={26} color={color} />
                             )}
-                            <Text style={[styles.tabLabel, focused && { color: '#ff9d6b' }]}>PROFILE</Text>
                         </View>
                     ),
                 }}
@@ -114,22 +108,20 @@ export default function TabLayout() {
 const styles = StyleSheet.create({
     tabItem: {
         alignItems: 'center',
-        gap: 6,
+        justifyContent: 'center',
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+    },
+    tabItemActive: {
+        // transform: [{ translateY: -10 }], // Optional pop effect
     },
     activeIconBg: {
         width: 44,
         height: 44,
         borderRadius: 22,
+        backgroundColor: '#E9C46A', // Sunny Yellow Background for active
         justifyContent: 'center',
         alignItems: 'center',
-    },
-    tabLabel: {
-        fontSize: 10,
-        fontWeight: '600',
-        color: 'rgba(255, 255, 255, 0.4)',
-        letterSpacing: 1,
-    },
-    tabLabelActive: {
-        color: '#c44dff',
     },
 });

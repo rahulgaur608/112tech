@@ -1,22 +1,36 @@
-import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Dimensions } from 'react-native';
-import { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet, Dimensions, Platform, Animated } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-import { techniques, categories, getTechniquesByCategory, Technique } from '../../data/techniques';
+import { categories, Technique } from '../../data/techniques';
+import { useTechniques } from '../../context/TechniqueContext';
+import ScreenBackground from '../../components/ScreenBackground';
 
 const { width } = Dimensions.get('window');
 
 export default function Library() {
     const router = useRouter();
+    const { techniques } = useTechniques();
     const [selectedCategory, setSelectedCategory] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const fadeAnim = useRef(new Animated.Value(0)).current;
 
-    const filteredTechniques = getTechniquesByCategory(selectedCategory).filter(t =>
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+    useEffect(() => {
+        Animated.timing(fadeAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+        }).start();
+    }, []);
+
+    const filteredTechniques = techniques.filter(t => {
+        const matchesCategory = selectedCategory === 'All' || t.category === selectedCategory;
+        const matchesSearch = t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.description.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesCategory && matchesSearch;
+    });
 
     const handleTechniquePress = (technique: Technique) => {
         router.push({
@@ -34,19 +48,19 @@ export default function Library() {
         });
     };
 
-    const getCategoryColor = (category: string, isActive: boolean) => {
-        const colors: { [key: string]: string[] } = {
-            'All': ['#c44dff', '#ff6b9d'],
-            'Breath': ['#4dabff', '#4dffae'],
-            'Awareness': ['#ff6b9d', '#ffd700'],
-            'Sound': ['#c44dff', '#4dabff'],
-            'Visualization': ['#ff9d6b', '#ff6b9d'],
-            'Body': ['#4dffae', '#4dabff'],
-            'Perception': ['#ffd700', '#ff6b9d'],
-            'Love': ['#ff6b9d', '#c44dff'],
-            'Mind': ['#4dabff', '#c44dff'],
+    const getCategoryColor = (category: string) => {
+        const colors: { [key: string]: string } = {
+            'All': '#A3B18A',
+            'Breath': '#A3B18A',
+            'Awareness': '#F4A261',
+            'Sound': '#E9C46A',
+            'Visualization': '#E76F51',
+            'Body': '#2A9D8F',
+            'Perception': '#F4A261',
+            'Love': '#E76F51',
+            'Mind': '#264653',
         };
-        return colors[category] || ['#c44dff', '#ff6b9d'];
+        return colors[category] || '#A3B18A';
     };
 
     const getCategoryIcon = (category: string) => {
@@ -64,159 +78,106 @@ export default function Library() {
     };
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={['#0a0f1a', '#1a1035', '#0d1f2d']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFill}
-            />
+        <ScreenBackground style={styles.container}>
 
             <SafeAreaView style={styles.safeArea} edges={['top']}>
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-                    {/* Header */}
-                    <View style={styles.header}>
-                        <View>
-                            <Text style={styles.title}>Library</Text>
-                            <Text style={styles.subtitle}>112 Sacred Techniques</Text>
-                        </View>
-                        <View style={styles.countBadge}>
-                            <Text style={styles.countText}>{filteredTechniques.length}</Text>
-                        </View>
+                {/* Header */}
+                <View style={styles.header}>
+                    <View>
+                        <Text style={styles.title}>Library</Text>
+                        <Text style={styles.subtitle}>112 Sacred Techniques</Text>
                     </View>
-
-                    {/* Search */}
-                    <View style={styles.searchContainer}>
-                        <LinearGradient
-                            colors={['rgba(196, 77, 255, 0.1)', 'rgba(77, 171, 255, 0.05)']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 0 }}
-                            style={styles.searchGradient}
-                        >
-                            <MaterialIcons name="search" size={22} color="rgba(255,255,255,0.5)" />
-                            <TextInput
-                                style={styles.searchInput}
-                                placeholder="Search techniques..."
-                                placeholderTextColor="rgba(255,255,255,0.4)"
-                                value={searchQuery}
-                                onChangeText={setSearchQuery}
-                            />
-                            {searchQuery.length > 0 && (
-                                <TouchableOpacity onPress={() => setSearchQuery('')}>
-                                    <MaterialIcons name="close" size={20} color="rgba(255,255,255,0.5)" />
-                                </TouchableOpacity>
-                            )}
-                        </LinearGradient>
+                    <View style={styles.countBadge}>
+                        <Text style={styles.countText}>{filteredTechniques.length}</Text>
                     </View>
+                </View>
 
-                    {/* Categories */}
+                {/* Search Bar */}
+                <View style={styles.searchContainer}>
+                    <View style={styles.searchBar}>
+                        <MaterialIcons name="search" size={22} color="#5C6B5E" />
+                        <TextInput
+                            style={styles.searchInput}
+                            placeholder="Find a technique..."
+                            placeholderTextColor="#94A1B2"
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                        />
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity onPress={() => setSearchQuery('')}>
+                                <MaterialIcons name="close" size={20} color="#5C6B5E" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+                </View>
+
+                {/* Categories */}
+                <View style={styles.categoriesContainer}>
                     <ScrollView
                         horizontal
                         showsHorizontalScrollIndicator={false}
-                        style={styles.categoriesScroll}
-                        contentContainerStyle={styles.categoriesContainer}
+                        contentContainerStyle={styles.categoriesContent}
                     >
                         {categories.map((category) => (
                             <TouchableOpacity
                                 key={category}
                                 onPress={() => setSelectedCategory(category)}
+                                activeOpacity={0.8}
                             >
-                                {selectedCategory === category ? (
-                                    <LinearGradient
-                                        colors={getCategoryColor(category, true)}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 0 }}
-                                        style={styles.categoryPillActive}
-                                    >
-                                        <Text style={styles.categoryTextActive}>{category}</Text>
-                                    </LinearGradient>
-                                ) : (
-                                    <View style={styles.categoryPill}>
-                                        <Text style={styles.categoryText}>{category}</Text>
-                                    </View>
-                                )}
+                                <View style={[
+                                    styles.categoryPill,
+                                    selectedCategory === category && { backgroundColor: '#A3B18A' }
+                                ]}>
+                                    <Text style={[
+                                        styles.categoryText,
+                                        selectedCategory === category && styles.categoryTextActive
+                                    ]}>{category}</Text>
+                                </View>
                             </TouchableOpacity>
                         ))}
                     </ScrollView>
+                </View>
 
-                    {/* Techniques List */}
-                    <View style={styles.techniquesContainer}>
-                        {filteredTechniques.map((technique, index) => (
+                {/* Techniques List */}
+                <ScrollView
+                    style={styles.scrollView}
+                    contentContainerStyle={styles.listContent}
+                    showsVerticalScrollIndicator={false}
+                >
+                    {filteredTechniques.map((technique, index) => (
+                        <Animated.View
+                            key={technique.id}
+                            style={{ opacity: fadeAnim }}
+                        >
                             <TouchableOpacity
-                                key={technique.id}
-                                style={styles.techniqueCard}
+                                style={styles.techniqueCardContainer}
                                 onPress={() => handleTechniquePress(technique)}
+                                activeOpacity={0.9}
                             >
-                                <LinearGradient
-                                    colors={[
-                                        index % 4 === 0 ? 'rgba(255, 107, 157, 0.12)' :
-                                            index % 4 === 1 ? 'rgba(77, 171, 255, 0.12)' :
-                                                index % 4 === 2 ? 'rgba(196, 77, 255, 0.12)' :
-                                                    'rgba(77, 255, 174, 0.12)',
-                                        'rgba(10, 15, 26, 0.5)'
-                                    ]}
-                                    start={{ x: 0, y: 0 }}
-                                    end={{ x: 1, y: 1 }}
-                                    style={styles.techniqueGradient}
-                                >
-                                    <View style={styles.techniqueHeader}>
-                                        <View style={[styles.verseTag, {
-                                            backgroundColor: index % 4 === 0 ? 'rgba(255, 107, 157, 0.2)' :
-                                                index % 4 === 1 ? 'rgba(77, 171, 255, 0.2)' :
-                                                    index % 4 === 2 ? 'rgba(196, 77, 255, 0.2)' :
-                                                        'rgba(77, 255, 174, 0.2)'
-                                        }]}>
-                                            <Text style={[styles.verseText, {
-                                                color: index % 4 === 0 ? '#ff6b9d' :
-                                                    index % 4 === 1 ? '#4dabff' :
-                                                        index % 4 === 2 ? '#c44dff' :
-                                                            '#4dffae'
-                                            }]}>✦ Verse {technique.verse}</Text>
+                                <View style={styles.techniqueCard}>
+                                    <View style={styles.cardHeader}>
+                                        <View style={[styles.iconContainer, { backgroundColor: `${getCategoryColor(technique.category)}20` }]}>
+                                            <MaterialIcons
+                                                name={getCategoryIcon(technique.category) as any}
+                                                size={18}
+                                                color={getCategoryColor(technique.category)}
+                                            />
                                         </View>
-                                        <Text style={styles.durationText}>{technique.duration}</Text>
-                                    </View>
-                                    <Text style={styles.techniqueTitle}>{technique.title}</Text>
-                                    <Text style={styles.techniqueDescription} numberOfLines={2}>
-                                        {technique.description}
-                                    </Text>
-                                    <View style={styles.techniqueFooter}>
-                                        <View style={styles.categoryTag}>
-                                            <View style={[styles.categoryIconContainer, {
-                                                backgroundColor: index % 4 === 0 ? 'rgba(255, 107, 157, 0.2)' :
-                                                    index % 4 === 1 ? 'rgba(77, 171, 255, 0.2)' :
-                                                        index % 4 === 2 ? 'rgba(196, 77, 255, 0.2)' :
-                                                            'rgba(77, 255, 174, 0.2)'
-                                            }]}>
-                                                <MaterialIcons
-                                                    name={getCategoryIcon(technique.category) as any}
-                                                    size={12}
-                                                    color={index % 4 === 0 ? '#ff6b9d' :
-                                                        index % 4 === 1 ? '#4dabff' :
-                                                            index % 4 === 2 ? '#c44dff' :
-                                                                '#4dffae'}
-                                                />
-                                            </View>
-                                            <Text style={styles.categoryTagText}>{technique.category}</Text>
-                                        </View>
-                                        <View style={[styles.arrowCircle, {
-                                            backgroundColor: index % 4 === 0 ? 'rgba(255, 107, 157, 0.2)' :
-                                                index % 4 === 1 ? 'rgba(77, 171, 255, 0.2)' :
-                                                    index % 4 === 2 ? 'rgba(196, 77, 255, 0.2)' :
-                                                        'rgba(77, 255, 174, 0.2)'
-                                        }]}>
-                                            <MaterialIcons name="arrow-forward" size={14} color="white" />
+                                        <View style={styles.verseBadge}>
+                                            <Text style={styles.verseText}>#{technique.verse}</Text>
                                         </View>
                                     </View>
-                                </LinearGradient>
-                            </TouchableOpacity>
-                        ))}
-                    </View>
 
-                    {/* Bottom Padding */}
-                    <View style={{ height: 120 }} />
+                                    <Text style={styles.cardTitle}>{technique.title}</Text>
+                                    <Text style={styles.durationText}>{technique.duration}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </Animated.View>
+                    ))}
+                    <View style={{ height: 100 }} />
                 </ScrollView>
             </SafeAreaView>
-        </View>
+        </ScreenBackground>
     );
 }
 
@@ -227,162 +188,151 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
     },
-    scrollView: {
-        flex: 1,
-    },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         paddingHorizontal: 24,
         paddingTop: 16,
-        paddingBottom: 8,
+        marginBottom: 16,
     },
     title: {
-        color: 'white',
+        color: '#2C3632',
         fontSize: 32,
         fontWeight: 'bold',
+        fontFamily: 'serif',
         marginBottom: 4,
     },
     subtitle: {
-        color: 'rgba(255,255,255,0.5)',
+        color: '#A3B18A',
         fontSize: 14,
+        fontWeight: '600',
     },
     countBadge: {
-        backgroundColor: 'rgba(196, 77, 255, 0.2)',
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
+        backgroundColor: '#FFF9F0',
         borderWidth: 1,
-        borderColor: 'rgba(196, 77, 255, 0.3)',
+        borderColor: '#A3B18A',
     },
     countText: {
-        color: '#c44dff',
+        color: '#A3B18A',
         fontSize: 16,
         fontWeight: 'bold',
     },
     searchContainer: {
         paddingHorizontal: 24,
-        marginVertical: 16,
+        marginBottom: 20,
     },
-    searchGradient: {
+    searchBar: {
         flexDirection: 'row',
         alignItems: 'center',
         paddingHorizontal: 16,
         paddingVertical: 14,
         borderRadius: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(196, 77, 255, 0.2)',
+        backgroundColor: '#FFFFFF',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
     },
     searchInput: {
         flex: 1,
         marginLeft: 12,
-        color: 'white',
+        color: '#2C3632',
         fontSize: 16,
     },
-    categoriesScroll: {
-        marginBottom: 20,
-    },
     categoriesContainer: {
+        marginBottom: 8,
+    },
+    categoriesContent: {
         paddingHorizontal: 24,
         gap: 10,
+        paddingBottom: 12,
     },
     categoryPill: {
         paddingHorizontal: 18,
         paddingVertical: 10,
-        backgroundColor: 'rgba(255,255,255,0.05)',
+        backgroundColor: '#FFFFFF',
         borderRadius: 25,
-        marginRight: 10,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    categoryPillActive: {
-        paddingHorizontal: 18,
-        paddingVertical: 10,
-        borderRadius: 25,
-        marginRight: 10,
+        borderColor: 'rgba(0,0,0,0.05)',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 4,
+        elevation: 1,
     },
     categoryText: {
-        color: 'rgba(255,255,255,0.6)',
+        color: '#5C6B5E',
         fontSize: 14,
         fontWeight: '500',
     },
     categoryTextActive: {
-        color: 'white',
-        fontSize: 14,
+        color: '#FFFFFF',
         fontWeight: '700',
     },
-    techniquesContainer: {
+    scrollView: {
+        flex: 1,
+    },
+    listContent: {
         paddingHorizontal: 24,
+        paddingTop: 8,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'space-between',
+    },
+    techniqueCardContainer: {
+        width: (width - 60) / 2, // 2 columns with spacing
+        marginBottom: 16,
+        borderRadius: 20,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.08,
+        shadowRadius: 12,
+        elevation: 4,
     },
     techniqueCard: {
-        marginBottom: 14,
-        borderRadius: 20,
-        overflow: 'hidden',
-    },
-    techniqueGradient: {
-        padding: 18,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.08)',
+        padding: 16,
+        height: 160,
+        justifyContent: 'space-between',
+        backgroundColor: '#FFFFFF',
         borderRadius: 20,
     },
-    techniqueHeader: {
+    cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 10,
+        alignItems: 'flex-start',
     },
-    verseTag: {
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 12,
+    iconContainer: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    verseBadge: {
+        backgroundColor: '#FFF9F0',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
     },
     verseText: {
-        fontSize: 11,
-        fontWeight: '700',
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#A3B18A',
+    },
+    cardTitle: {
+        color: '#2C3632',
+        fontSize: 15,
+        fontWeight: '600',
+        lineHeight: 20,
+        fontFamily: 'serif',
     },
     durationText: {
-        color: 'rgba(255,255,255,0.5)',
+        color: '#94A1B2',
         fontSize: 12,
-    },
-    techniqueTitle: {
-        color: 'white',
-        fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 6,
-    },
-    techniqueDescription: {
-        color: 'rgba(255,255,255,0.55)',
-        fontSize: 13,
-        lineHeight: 19,
-        marginBottom: 14,
-    },
-    techniqueFooter: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    categoryTag: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    categoryIconContainer: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    categoryTagText: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 12,
-    },
-    arrowCircle: {
-        width: 28,
-        height: 28,
-        borderRadius: 14,
-        justifyContent: 'center',
-        alignItems: 'center',
     },
 });

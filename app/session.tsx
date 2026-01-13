@@ -3,6 +3,7 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useState, useEffect, useRef } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
+import ScreenBackground from '../components/ScreenBackground';
 
 const { width, height } = Dimensions.get('window');
 
@@ -26,7 +27,7 @@ export default function Session() {
         Animated.loop(
             Animated.sequence([
                 Animated.timing(breathAnim, {
-                    toValue: 1.3,
+                    toValue: 1.2,
                     duration: 4000,
                     useNativeDriver: true,
                 }),
@@ -42,7 +43,7 @@ export default function Session() {
         Animated.loop(
             Animated.sequence([
                 Animated.timing(pulseAnim, {
-                    toValue: 0.8,
+                    toValue: 0.6,
                     duration: 4000,
                     useNativeDriver: true,
                 }),
@@ -58,7 +59,7 @@ export default function Session() {
         Animated.loop(
             Animated.timing(ring1Anim, {
                 toValue: 1,
-                duration: 20000,
+                duration: 30000,
                 useNativeDriver: true,
             })
         ).start();
@@ -66,7 +67,7 @@ export default function Session() {
         Animated.loop(
             Animated.timing(ring2Anim, {
                 toValue: 1,
-                duration: 30000,
+                duration: 40000,
                 useNativeDriver: true,
             })
         ).start();
@@ -93,14 +94,7 @@ export default function Session() {
     const [m, s] = formatTime(timeLeft);
 
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={['#0a0f1a', '#1a1035', '#0d1f2d']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFill}
-            />
-
+        <ScreenBackground style={styles.container}>
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerText}>DEEP AWARENESS</Text>
@@ -114,7 +108,7 @@ export default function Session() {
                         style={[
                             styles.ring,
                             styles.ring1,
-                            { transform: [{ rotate: spin1 }, { scale: breathAnim }], opacity: pulseAnim }
+                            { transform: [{ rotate: spin1 }, { scale: breathAnim }], opacity: 0.8 }
                         ]}
                     />
                     <Animated.View
@@ -135,22 +129,16 @@ export default function Session() {
                     {/* Timer Display */}
                     <View style={styles.timerRow}>
                         <View style={styles.timeUnit}>
-                            <LinearGradient
-                                colors={['rgba(196, 77, 255, 0.15)', 'rgba(77, 171, 255, 0.1)']}
-                                style={styles.timeBox}
-                            >
+                            <View style={styles.timeBox}>
                                 <Text style={styles.timeText}>{m}</Text>
-                            </LinearGradient>
+                            </View>
                             <Text style={styles.timeLabel}>MIN</Text>
                         </View>
                         <Text style={styles.colon}>:</Text>
                         <View style={styles.timeUnit}>
-                            <LinearGradient
-                                colors={['rgba(255, 107, 157, 0.15)', 'rgba(196, 77, 255, 0.1)']}
-                                style={styles.timeBox}
-                            >
+                            <View style={styles.timeBox}>
                                 <Text style={styles.timeText}>{s}</Text>
-                            </LinearGradient>
+                            </View>
                             <Text style={styles.timeLabel}>SEC</Text>
                         </View>
                     </View>
@@ -159,14 +147,9 @@ export default function Session() {
                 {/* Instruction */}
                 <View style={styles.instruction}>
                     <Text style={styles.instructionTitle}>{title}</Text>
-                    <LinearGradient
-                        colors={['#c44dff', '#ff6b9d']}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={styles.instructionBadge}
-                    >
+                    <View style={styles.instructionBadge}>
                         <Text style={styles.instructionSubtitle}>VIGYAN BHAIRAVA TANTRA</Text>
-                    </LinearGradient>
+                    </View>
                 </View>
             </View>
 
@@ -176,16 +159,13 @@ export default function Session() {
                     onPress={() => router.replace('/complete')}
                     style={styles.endButton}
                 >
-                    <LinearGradient
-                        colors={['rgba(248, 113, 113, 0.2)', 'rgba(248, 113, 113, 0.1)']}
-                        style={styles.endButtonGradient}
-                    >
-                        <MaterialIcons name="close" size={28} color="#f87171" />
-                    </LinearGradient>
+                    <View style={styles.endButtonCircle}>
+                        <MaterialIcons name="close" size={28} color="#E76F51" />
+                    </View>
                     <Text style={styles.endButtonText}>END SESSION</Text>
                 </TouchableOpacity>
             </View>
-        </View>
+        </ScreenBackground>
     );
 }
 
@@ -198,12 +178,12 @@ const styles = StyleSheet.create({
         paddingBottom: 50,
     },
     header: {
-        opacity: 0.5,
+        opacity: 0.8,
     },
     headerText: {
-        color: 'white',
+        color: '#A3B18A',
         fontSize: 13,
-        letterSpacing: 5,
+        letterSpacing: 4,
         fontWeight: '600',
     },
     timerSection: {
@@ -223,17 +203,19 @@ const styles = StyleSheet.create({
     ring1: {
         width: 320,
         height: 320,
-        borderColor: 'rgba(196, 77, 255, 0.25)',
+        borderColor: 'rgba(163, 177, 138, 0.2)', // Sage
+        borderWidth: 2,
     },
     ring2: {
         width: 260,
         height: 260,
-        borderColor: 'rgba(255, 107, 157, 0.2)',
+        borderColor: 'rgba(244, 162, 97, 0.15)', // Peach
     },
     ring3: {
         width: 200,
         height: 200,
-        borderColor: 'rgba(77, 171, 255, 0.25)',
+        borderColor: 'rgba(163, 177, 138, 0.3)',
+        backgroundColor: 'rgba(163, 177, 138, 0.05)',
     },
     timerRow: {
         flexDirection: 'row',
@@ -248,26 +230,24 @@ const styles = StyleSheet.create({
         height: 100,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
     },
     timeText: {
-        color: 'white',
-        fontSize: 48,
+        color: '#2C3632',
+        fontSize: 56,
         fontWeight: '300',
+        fontFamily: 'serif',
     },
     timeLabel: {
-        color: '#c44dff',
+        color: '#A3B18A',
         fontSize: 11,
-        marginTop: 12,
-        letterSpacing: 3,
+        marginTop: 0,
+        letterSpacing: 2,
         fontWeight: 'bold',
     },
     colon: {
         fontSize: 40,
-        color: 'rgba(255, 107, 157, 0.5)',
-        paddingBottom: 40,
+        color: '#A3B18A',
+        paddingBottom: 20,
         marginHorizontal: 16,
         fontWeight: '200',
     },
@@ -277,21 +257,25 @@ const styles = StyleSheet.create({
         marginTop: 50,
     },
     instructionTitle: {
-        color: 'white',
+        color: '#2C3632',
         fontSize: 22,
         fontWeight: '400',
         letterSpacing: 0.5,
         marginBottom: 16,
         textAlign: 'center',
-        lineHeight: 30,
+        lineHeight: 32,
+        fontFamily: 'serif',
     },
     instructionBadge: {
+        backgroundColor: '#FFF9F0',
         paddingHorizontal: 16,
         paddingVertical: 8,
         borderRadius: 20,
+        borderWidth: 1,
+        borderColor: '#E9C46A',
     },
     instructionSubtitle: {
-        color: 'white',
+        color: '#F4A261',
         fontSize: 11,
         letterSpacing: 3,
         fontWeight: 'bold',
@@ -302,20 +286,26 @@ const styles = StyleSheet.create({
     endButton: {
         alignItems: 'center',
     },
-    endButtonGradient: {
+    endButtonCircle: {
         width: 70,
         height: 70,
         alignItems: 'center',
         justifyContent: 'center',
         borderRadius: 35,
+        backgroundColor: '#FFF9F0',
         borderWidth: 1,
-        borderColor: 'rgba(248, 113, 113, 0.3)',
+        borderColor: '#E76F51',
         marginBottom: 12,
+        shadowColor: '#E76F51',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 2,
     },
     endButtonText: {
         fontSize: 11,
         fontWeight: 'bold',
-        color: 'rgba(248, 113, 113, 0.7)',
+        color: '#E76F51',
         letterSpacing: 2,
     },
 });

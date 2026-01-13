@@ -1,4 +1,4 @@
-// All 112 Meditation Techniques from Vigyan Bhairava Tantra
+                                    // All 112 Meditation Techniques from Vigyan Bhairava Tantra
 // Part 1: Techniques 1-30 (Verses 24-55)
 
 export interface Technique {

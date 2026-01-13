@@ -1,73 +1,25 @@
-import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Animated, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet, Dimensions, Image } from 'react-native';
 import { useRouter } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect, useRef, useMemo } from 'react';
 import { LinearGradient } from 'expo-linear-gradient';
-import { techniques, Technique } from '../../data/techniques';
+import { techniques as staticTechniques, Technique } from '../../data/techniques';
+import { useTechniques } from '../../context/TechniqueContext';
+import ScreenBackground from '../../components/ScreenBackground';
 
 const { width } = Dimensions.get('window');
 
 export default function Home() {
     const router = useRouter();
-    const breathAnim = useRef(new Animated.Value(1)).current;
-    const pulseAnim = useRef(new Animated.Value(0.3)).current;
-    const rotateAnim = useRef(new Animated.Value(0)).current;
+    const { techniques } = useTechniques();
+    const activeTechniques = techniques.length > 0 ? techniques : staticTechniques;
 
-    // Get a consistent "daily" technique based on date
-    const dailyTechnique = useMemo(() => {
-        const today = new Date();
-        const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / 86400000);
-        return techniques[dayOfYear % techniques.length];
-    }, []);
-
-    useEffect(() => {
-        // Breathing animation
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(breathAnim, {
-                    toValue: 1.2,
-                    duration: 4000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(breathAnim, {
-                    toValue: 1,
-                    duration: 4000,
-                    useNativeDriver: true,
-                }),
-            ])
-        ).start();
-
-        // Pulse animation for glow
-        Animated.loop(
-            Animated.sequence([
-                Animated.timing(pulseAnim, {
-                    toValue: 0.8,
-                    duration: 2000,
-                    useNativeDriver: true,
-                }),
-                Animated.timing(pulseAnim, {
-                    toValue: 0.3,
-                    duration: 2000,
-                    useNativeDriver: true,
-                }),
-            ])
-        ).start();
-
-        // Slow rotation
-        Animated.loop(
-            Animated.timing(rotateAnim, {
-                toValue: 1,
-                duration: 30000,
-                useNativeDriver: true,
-            })
-        ).start();
-    }, []);
-
-    const spin = rotateAnim.interpolate({
-        inputRange: [0, 1],
-        outputRange: ['0deg', '360deg'],
-    });
+    const categories = [
+        { id: 'yoga', name: 'Yoga', icon: 'self-improvement', color: '#D4E09B' },
+        { id: 'meditation', name: 'Meditation', icon: 'spa', color: '#F6EAC2' },
+        { id: 'mindful', name: 'Mindful', icon: 'psychology', color: '#A3B18A' },
+        { id: 'profile', name: 'Profile', icon: 'person', color: '#F4A261' },
+    ];
 
     const handleTechniquePress = (technique: Technique) => {
         router.push({
@@ -85,222 +37,124 @@ export default function Home() {
         });
     };
 
-    const getGreeting = () => {
-        const hour = new Date().getHours();
-        if (hour < 12) return 'Good Morning';
-        if (hour < 17) return 'Good Afternoon';
-        return 'Good Evening';
-    };
-
     return (
-        <View style={styles.container}>
-            <LinearGradient
-                colors={['#0a0f1a', '#1a1035', '#0d1f2d']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={StyleSheet.absoluteFill}
-            />
-
+        <ScreenBackground style={styles.container}>
             <SafeAreaView style={styles.safeArea} edges={['top']}>
-                <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+                <ScrollView
+                    style={styles.scrollView}
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 100 }}
+                >
                     {/* Header */}
                     <View style={styles.header}>
-                        <View>
-                            <Text style={styles.greeting}>{getGreeting()}</Text>
-                            <Text style={styles.welcomeText}>Ancient Awareness</Text>
+                        <View style={styles.headerLeft}>
+                            <View style={styles.avatarContainer}>
+                                <Image
+                                    source={{ uri: "https://lh3.googleusercontent.com/aida-public/AB6AXuD859qOh8yzZ_qAGq8UaHgpO6VVgBz5dm1CkIBLCcQMs_9f7shnWd-TDRogJQxMHE002kNDyXyxdntiKcwQQztvNNte9vp6cldTQ_E_dxpoiJ_g414-OASxx5B933IDnN-P6PSHIzmZX73IbyEtDk8EVo0bFFtLe7bOPmvziZh-mM5QhCC7N8Pr35_QjT2Pw1bUZDbGumS4OxBNcZkCLy6HiaxWjQ4nvYBo8FI4v43jIqehV-sennIPbjdslJJr1kPocux6J9Qv9RA" }}
+                                    style={styles.avatar}
+                                />
+                            </View>
+                            <Text style={styles.welcomeText}>Hi, Annie</Text>
                         </View>
-                        <TouchableOpacity
-                            style={styles.profileButton}
-                            onPress={() => router.push('/(tabs)/profile')}
-                        >
-                            <LinearGradient
-                                colors={['#ff6b9d', '#c44dff']}
-                                style={styles.profileGradient}
-                            >
-                                <MaterialIcons name="person" size={22} color="white" />
-                            </LinearGradient>
-                        </TouchableOpacity>
+                        <View style={styles.headerRight}>
+                            <TouchableOpacity style={styles.iconButton}>
+                                <MaterialIcons name="search" size={24} color="#2C3632" />
+                            </TouchableOpacity>
+                            <TouchableOpacity style={styles.iconButton}>
+                                <MaterialIcons name="notifications-none" size={24} color="#2C3632" />
+                            </TouchableOpacity>
+                        </View>
                     </View>
 
-                    {/* Hero Meditation Card */}
-                    <View style={styles.heroCard}>
+                    {/* Hero Illustration Placeholder */}
+                    <View style={styles.heroContainer}>
                         <LinearGradient
-                            colors={['rgba(196, 77, 255, 0.15)', 'rgba(255, 107, 157, 0.1)', 'rgba(77, 171, 255, 0.1)']}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
+                            colors={['#FFF9F0', '#FFFFFF']}
                             style={styles.heroGradient}
                         >
-                            {/* Animated background rings */}
-                            <Animated.View style={[styles.ring, styles.ring1, { transform: [{ rotate: spin }, { scale: breathAnim }], opacity: pulseAnim }]} />
-                            <Animated.View style={[styles.ring, styles.ring2, { transform: [{ rotate: spin }] }]} />
-                            <Animated.View style={[styles.ring, styles.ring3, { transform: [{ scale: breathAnim }] }]} />
-
+                            {/* Represents the yoga illustration from screenshot */}
                             <View style={styles.heroContent}>
-                                <Text style={styles.heroTitle}>Begin Your Journey</Text>
-                                <Text style={styles.heroSubtitle}>112 Meditation Techniques</Text>
-                                <Text style={styles.heroSource}>Vigyan Bhairava Tantra</Text>
-
-                                <TouchableOpacity
-                                    style={styles.startButton}
-                                    onPress={() => handleTechniquePress(dailyTechnique)}
-                                >
-                                    <LinearGradient
-                                        colors={['#c44dff', '#ff6b9d', '#ff9d6b']}
-                                        start={{ x: 0, y: 0 }}
-                                        end={{ x: 1, y: 0 }}
-                                        style={styles.startButtonGradient}
-                                    >
-                                        <MaterialIcons name="play-arrow" size={28} color="white" />
-                                        <Text style={styles.startButtonText}>Start Practice</Text>
-                                    </LinearGradient>
-                                </TouchableOpacity>
+                                <MaterialIcons name="self-improvement" size={80} color="#A3B18A" style={{ opacity: 0.8 }} />
                             </View>
                         </LinearGradient>
                     </View>
 
-                    {/* Today's Focus */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Today's Focus</Text>
-                            <View style={styles.sparkle}>
-                                <MaterialIcons name="auto-awesome" size={18} color="#ffd700" />
-                            </View>
-                        </View>
-                        <TouchableOpacity
-                            style={styles.focusCard}
-                            onPress={() => handleTechniquePress(dailyTechnique)}
-                        >
-                            <LinearGradient
-                                colors={['rgba(77, 171, 255, 0.15)', 'rgba(77, 255, 174, 0.1)']}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 1 }}
-                                style={styles.focusGradient}
-                            >
-                                <View style={styles.focusHeader}>
-                                    <View style={styles.verseTag}>
-                                        <Text style={styles.verseText}>✦ Verse {dailyTechnique.verse}</Text>
-                                    </View>
-                                    <Text style={styles.durationText}>{dailyTechnique.duration}</Text>
+                    {/* Categories */}
+                    <View style={styles.categoriesContainer}>
+                        {categories.map((cat) => (
+                            <TouchableOpacity key={cat.id} style={styles.categoryItem} onPress={() => router.push('/(tabs)/library')}>
+                                <View style={[styles.categoryCircle, { backgroundColor: cat.color }]}>
+                                    <MaterialIcons name={cat.icon as any} size={24} color="#2C3632" />
                                 </View>
-                                <Text style={styles.focusTitle}>{dailyTechnique.title}</Text>
-                                <Text style={styles.focusDescription} numberOfLines={2}>
-                                    {dailyTechnique.description}
-                                </Text>
-                                <View style={styles.focusFooter}>
-                                    <View style={styles.categoryTag}>
-                                        <MaterialIcons
-                                            name={
-                                                dailyTechnique.category === 'Breath' ? 'air' :
-                                                    dailyTechnique.category === 'Sound' ? 'music-note' :
-                                                        dailyTechnique.category === 'Visualization' ? 'visibility' :
-                                                            'psychology'
-                                            }
-                                            size={14}
-                                            color="#4dabff"
-                                        />
-                                        <Text style={styles.categoryTagText}>{dailyTechnique.category}</Text>
-                                    </View>
-                                    <View style={styles.arrowCircle}>
-                                        <MaterialIcons name="arrow-forward" size={16} color="white" />
-                                    </View>
-                                </View>
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Stats */}
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>Your Progress</Text>
-                        <View style={styles.statsRow}>
-                            <View style={styles.statCard}>
-                                <LinearGradient
-                                    colors={['rgba(255, 107, 157, 0.2)', 'rgba(255, 107, 157, 0.05)']}
-                                    style={styles.statGradient}
-                                >
-                                    <Text style={styles.statValue}>🔥 3</Text>
-                                    <Text style={styles.statLabel}>Day Streak</Text>
-                                </LinearGradient>
-                            </View>
-                            <View style={styles.statCard}>
-                                <LinearGradient
-                                    colors={['rgba(77, 171, 255, 0.2)', 'rgba(77, 171, 255, 0.05)']}
-                                    style={styles.statGradient}
-                                >
-                                    <Text style={styles.statValue}>⏱ 45</Text>
-                                    <Text style={styles.statLabel}>Minutes</Text>
-                                </LinearGradient>
-                            </View>
-                            <View style={styles.statCard}>
-                                <LinearGradient
-                                    colors={['rgba(196, 77, 255, 0.2)', 'rgba(196, 77, 255, 0.05)']}
-                                    style={styles.statGradient}
-                                >
-                                    <Text style={styles.statValue}>✨ 7</Text>
-                                    <Text style={styles.statLabel}>Practiced</Text>
-                                </LinearGradient>
-                            </View>
-                        </View>
-                    </View>
-
-                    {/* Explore */}
-                    <View style={styles.section}>
-                        <View style={styles.sectionHeader}>
-                            <Text style={styles.sectionTitle}>Explore Techniques</Text>
-                            <TouchableOpacity onPress={() => router.push('/(tabs)/library')}>
-                                <Text style={styles.seeAllText}>See All →</Text>
+                                <Text style={styles.categoryText}>{cat.name}</Text>
                             </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    {/* Today's Sessions */}
+                    <View style={styles.section}>
+                        <View style={styles.sectionHeader}>
+                            <MaterialIcons name="calendar-today" size={20} color="#5C6B5E" />
+                            <Text style={styles.sectionTitle}>Today's Sessions</Text>
                         </View>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.horizontalScroll}
-                        >
-                            {techniques.slice(0, 6).map((technique, index) => (
+
+                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.horizontalList}>
+                            {activeTechniques.slice(0, 3).map((technique, index) => (
                                 <TouchableOpacity
                                     key={technique.id}
-                                    style={styles.miniCard}
+                                    style={[styles.sessionCard, { backgroundColor: index % 2 === 0 ? '#F6EAC2' : '#F4A261' }]}
                                     onPress={() => handleTechniquePress(technique)}
+                                    activeOpacity={0.9}
                                 >
-                                    <LinearGradient
-                                        colors={[
-                                            index % 3 === 0 ? 'rgba(255, 107, 157, 0.2)' :
-                                                index % 3 === 1 ? 'rgba(77, 171, 255, 0.2)' :
-                                                    'rgba(196, 77, 255, 0.2)',
-                                            'rgba(0, 0, 0, 0.1)'
-                                        ]}
-                                        style={styles.miniGradient}
-                                    >
-                                        <View style={[styles.miniIcon, {
-                                            backgroundColor: index % 3 === 0 ? 'rgba(255, 107, 157, 0.3)' :
-                                                index % 3 === 1 ? 'rgba(77, 171, 255, 0.3)' :
-                                                    'rgba(196, 77, 255, 0.3)'
-                                        }]}>
-                                            <MaterialIcons
-                                                name={
-                                                    technique.category === 'Breath' ? 'air' :
-                                                        technique.category === 'Sound' ? 'music-note' :
-                                                            technique.category === 'Visualization' ? 'visibility' :
-                                                                technique.category === 'Body' ? 'self-improvement' :
-                                                                    technique.category === 'Love' ? 'favorite' :
-                                                                        'psychology'
-                                                }
-                                                size={20}
-                                                color="white"
-                                            />
+                                    <View style={styles.sessionCardContent}>
+                                        <Text style={styles.sessionTitle} numberOfLines={2}>{technique.title}</Text>
+                                        <View style={styles.sessionMeta}>
+                                            <Text style={styles.sessionTime}>{technique.duration}</Text>
+                                            <View style={styles.playButton}>
+                                                <MaterialIcons name="play-arrow" size={20} color="#FFF" />
+                                            </View>
                                         </View>
-                                        <Text style={styles.miniTitle} numberOfLines={2}>{technique.title}</Text>
-                                        <Text style={styles.miniDuration}>{technique.duration}</Text>
-                                    </LinearGradient>
+                                    </View>
+                                    {/* Decoration */}
+                                    <View style={styles.cardDecoration} />
                                 </TouchableOpacity>
                             ))}
                         </ScrollView>
                     </View>
 
-                    {/* Bottom Padding */}
-                    <View style={{ height: 120 }} />
+                    {/* Premium Session */}
+                    <View style={styles.section}>
+                        <View style={styles.premiumHeader}>
+                            <MaterialIcons name="diamond" size={20} color="#5C6B5E" />
+                            <Text style={styles.sectionTitle}>Organic Workshop</Text>
+                        </View>
+                        <TouchableOpacity style={styles.premiumCard} activeOpacity={0.9}>
+                            <LinearGradient
+                                colors={['#D4E09B', '#A3B18A']}
+                                style={styles.premiumGradient}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                            >
+                                <View style={styles.premiumContent}>
+                                    <View style={styles.tagContainer}>
+                                        <Text style={styles.tagText}>Intensive</Text>
+                                    </View>
+                                    <Text style={styles.premiumTitle}>10-DAY YOGA WORKSHOP</Text>
+                                    <TouchableOpacity style={styles.knowMoreButton}>
+                                        <Text style={styles.knowMoreText}>Know more</Text>
+                                        <MaterialIcons name="chevron-right" size={16} color="#5C6B5E" />
+                                    </TouchableOpacity>
+                                </View>
+                                <View style={styles.premiumImagePlaceholder}>
+                                    <MaterialIcons name="spa" size={80} color="rgba(255,255,255,0.4)" />
+                                </View>
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+
                 </ScrollView>
             </SafeAreaView>
-        </View>
+        </ScreenBackground>
     );
 }
 
@@ -320,261 +174,217 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingHorizontal: 24,
         paddingTop: 16,
-        paddingBottom: 24,
+        marginBottom: 10,
     },
-    greeting: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 14,
-        marginBottom: 2,
+    headerLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
     },
-    welcomeText: {
-        color: 'white',
-        fontSize: 26,
-        fontWeight: 'bold',
-        letterSpacing: 0.5,
-    },
-    profileButton: {
-        borderRadius: 22,
-        overflow: 'hidden',
-    },
-    profileGradient: {
+    avatarContainer: {
         width: 44,
         height: 44,
         borderRadius: 22,
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: '#fff',
+    },
+    avatar: {
+        width: '100%',
+        height: '100%',
+    },
+    welcomeText: {
+        fontSize: 20,
+        color: '#2C3632',
+        fontFamily: 'serif', // System serif
+        fontWeight: '600',
+    },
+    headerRight: {
+        flexDirection: 'row',
+        gap: 16,
+    },
+    iconButton: {
+        padding: 4,
+    },
+    heroContainer: {
+        height: 200,
+        marginBottom: 20,
+    },
+    heroGradient: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    heroCard: {
-        marginHorizontal: 24,
-        borderRadius: 24,
-        overflow: 'hidden',
-        marginBottom: 28,
-    },
-    heroGradient: {
-        padding: 28,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.1)',
-        borderRadius: 24,
-        position: 'relative',
-        overflow: 'hidden',
-    },
-    ring: {
-        position: 'absolute',
-        borderRadius: 999,
-        borderWidth: 1,
-    },
-    ring1: {
-        width: 300,
-        height: 300,
-        borderColor: 'rgba(196, 77, 255, 0.2)',
-    },
-    ring2: {
-        width: 220,
-        height: 220,
-        borderColor: 'rgba(255, 107, 157, 0.15)',
-    },
-    ring3: {
-        width: 150,
-        height: 150,
-        borderColor: 'rgba(77, 171, 255, 0.2)',
-    },
     heroContent: {
         alignItems: 'center',
-        zIndex: 10,
     },
-    heroTitle: {
-        color: 'white',
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 8,
-        letterSpacing: 0.5,
-    },
-    heroSubtitle: {
-        color: 'rgba(255,255,255,0.7)',
-        fontSize: 16,
-        marginBottom: 4,
-    },
-    heroSource: {
-        color: '#c44dff',
-        fontSize: 12,
-        fontWeight: '600',
-        letterSpacing: 2,
-        textTransform: 'uppercase',
-        marginBottom: 24,
-    },
-    startButton: {
-        borderRadius: 30,
-        overflow: 'hidden',
-        shadowColor: '#c44dff',
-        shadowOffset: { width: 0, height: 8 },
-        shadowOpacity: 0.4,
-        shadowRadius: 16,
-        elevation: 8,
-    },
-    startButtonGradient: {
+    categoriesContainer: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: 24,
+        marginBottom: 32,
+    },
+    categoryItem: {
         alignItems: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: 28,
         gap: 8,
     },
-    startButtonText: {
-        color: 'white',
-        fontSize: 16,
-        fontWeight: 'bold',
+    categoryCircle: {
+        width: 60,
+        height: 60,
+        borderRadius: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 8,
+        elevation: 3,
+    },
+    categoryText: {
+        fontSize: 12,
+        color: '#5C6B5E',
+        fontWeight: '500',
     },
     section: {
-        marginBottom: 28,
+        marginBottom: 32,
     },
     sectionHeader: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'space-between',
+        gap: 8,
         paddingHorizontal: 24,
         marginBottom: 16,
     },
-    sectionTitle: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
-        paddingHorizontal: 24,
-        marginBottom: 16,
-    },
-    sparkle: {
-        marginLeft: 8,
-    },
-    seeAllText: {
-        color: '#ff6b9d',
-        fontSize: 14,
-        fontWeight: '600',
-    },
-    focusCard: {
-        marginHorizontal: 24,
-        borderRadius: 20,
-        overflow: 'hidden',
-    },
-    focusGradient: {
-        padding: 20,
-        borderWidth: 1,
-        borderColor: 'rgba(77, 171, 255, 0.2)',
-        borderRadius: 20,
-    },
-    focusHeader: {
+    premiumHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 24,
         marginBottom: 12,
     },
-    verseTag: {
-        backgroundColor: 'rgba(77, 255, 174, 0.15)',
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 20,
+    sectionTitle: {
+        fontSize: 18,
+        color: '#2C3632', // Dark Charcoal
+        fontFamily: 'serif',
+        fontWeight: '500',
     },
-    verseText: {
-        color: '#4dffae',
-        fontSize: 12,
+    horizontalList: {
+        paddingHorizontal: 24,
+        gap: 16,
+    },
+    sessionCard: {
+        width: 200,
+        height: 140,
+        borderRadius: 24,
+        padding: 20,
+        justifyContent: 'space-between',
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 10,
+        elevation: 4,
+    },
+    sessionCardContent: {
+        zIndex: 10,
+        height: '100%',
+        justifyContent: 'space-between',
+    },
+    sessionTitle: {
+        fontSize: 18,
+        fontFamily: 'serif',
+        color: '#2C3632',
         fontWeight: '600',
     },
-    durationText: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 13,
-    },
-    focusTitle: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: '600',
-        marginBottom: 8,
-    },
-    focusDescription: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 14,
-        lineHeight: 20,
-        marginBottom: 16,
-    },
-    focusFooter: {
+    sessionMeta: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
     },
-    categoryTag: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
+    sessionTime: {
+        fontSize: 12,
+        color: '#2C3632',
+        opacity: 0.7,
+        fontWeight: '600',
     },
-    categoryTagText: {
-        color: 'rgba(255,255,255,0.6)',
-        fontSize: 13,
-    },
-    arrowCircle: {
+    playButton: {
         width: 32,
         height: 32,
         borderRadius: 16,
-        backgroundColor: 'rgba(77, 171, 255, 0.3)',
+        backgroundColor: 'rgba(255,255,255,0.4)',
         justifyContent: 'center',
         alignItems: 'center',
     },
-    statsRow: {
-        flexDirection: 'row',
-        paddingHorizontal: 24,
-        gap: 12,
+    cardDecoration: {
+        position: 'absolute',
+        right: -30,
+        bottom: -30,
+        width: 100,
+        height: 100,
+        borderRadius: 50,
+        backgroundColor: 'rgba(255,255,255,0.2)',
     },
-    statCard: {
+    premiumCard: {
+        marginHorizontal: 24,
+        height: 180,
+        borderRadius: 24,
+        overflow: 'hidden',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.15,
+        shadowRadius: 16,
+        elevation: 6,
+    },
+    premiumGradient: {
         flex: 1,
-        borderRadius: 16,
-        overflow: 'hidden',
-    },
-    statGradient: {
-        padding: 16,
+        flexDirection: 'row',
         alignItems: 'center',
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.08)',
-        borderRadius: 16,
+        padding: 24,
     },
-    statValue: {
-        color: 'white',
-        fontSize: 20,
-        fontWeight: 'bold',
-        marginBottom: 4,
-    },
-    statLabel: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 11,
-    },
-    horizontalScroll: {
-        paddingHorizontal: 24,
-    },
-    miniCard: {
-        width: 130,
-        marginRight: 12,
-        borderRadius: 16,
-        overflow: 'hidden',
-    },
-    miniGradient: {
-        padding: 16,
-        borderWidth: 1,
-        borderColor: 'rgba(255, 255, 255, 0.08)',
-        borderRadius: 16,
-        height: 140,
-    },
-    miniIcon: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
+    premiumContent: {
+        flex: 1,
         justifyContent: 'center',
-        alignItems: 'center',
+    },
+    tagContainer: {
+        backgroundColor: 'rgba(255,255,255,0.6)',
+        paddingHorizontal: 10,
+        paddingVertical: 4,
+        borderRadius: 12,
+        alignSelf: 'flex-start',
         marginBottom: 12,
     },
-    miniTitle: {
-        color: 'white',
-        fontSize: 13,
-        fontWeight: '600',
-        marginBottom: 6,
-        lineHeight: 18,
+    tagText: {
+        fontSize: 10,
+        fontWeight: 'bold',
+        color: '#2C3632',
+        textTransform: 'uppercase',
     },
-    miniDuration: {
-        color: 'rgba(255,255,255,0.5)',
-        fontSize: 11,
+    premiumTitle: {
+        fontSize: 22,
+        fontFamily: 'serif',
+        color: '#2C3632',
+        fontWeight: '600',
+        marginBottom: 20,
+        lineHeight: 28,
+    },
+    knowMoreButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FFF',
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 20,
+        alignSelf: 'flex-start',
+    },
+    knowMoreText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#5C6B5E',
+        marginRight: 4,
+    },
+    premiumImagePlaceholder: {
+        width: 100,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
 });
